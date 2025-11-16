@@ -25,7 +25,7 @@ export default function RootLayout({
       <body>
         <Providers>
           {children}
-          {/* <GlobalSnackbar /> */}
+          <GlobalSnackbar />
         </Providers>
       </body>
     </html>

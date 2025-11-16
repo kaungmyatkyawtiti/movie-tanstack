@@ -19,6 +19,7 @@ import z from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { reviewSchema } from "@/utils/schema";
 import { useMutationSaveReview, useMutationUpdateReview } from "@/hooks/reviewHook";
+import { useBoundStore } from "@/lib/useBondStore";
 
 interface ReviewFormDialogProps {
   open: boolean;
@@ -38,6 +39,7 @@ export default function ReviewFormDialog({
   const [isLoading, setIsLoading] = useState(false);
   const [rating, setRating] = useState<number>(reviewToEdit?.rating ?? 0);
 
+  const { showNoti } = useBoundStore();
   const { mutateAsync: saveReview } = useMutationSaveReview();
   const { mutateAsync: updateReview } = useMutationUpdateReview();
 
@@ -74,8 +76,10 @@ export default function ReviewFormDialog({
       try {
         const data = await updateReview(updated);
         console.log("update review success from review dialog", data);
+        showNoti("Successfully update review.");
       } catch (err) {
         console.log("update review error from review dialog", err);
+        showNoti("Failed to update review.");
       } finally {
         setIsLoading(false);
         reset();
@@ -90,8 +94,10 @@ export default function ReviewFormDialog({
       try {
         const data = await saveReview(newOne);
         console.log("save review success from review dialog", data);
+        showNoti("Successfully save review.");
       } catch (err) {
         console.log("save review error from review dialog", err);
+        showNoti("Failed to save review.");
       } finally {
         setIsLoading(false);
         reset();

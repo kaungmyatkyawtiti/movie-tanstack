@@ -1,10 +1,11 @@
 "use client";
 
+import { useBoundStore } from "@/lib/useBondStore";
 import { Snackbar } from "@mui/material";
 
 export default function GlobalSnackbar() {
-  // const dispatch = useAppDispatch();
-  // const message = useAppSelector(selectMsg);
+  const message = useBoundStore(state => state.message);
+  const { hideNoti } = useBoundStore();
 
   return (
     <Snackbar
@@ -12,10 +13,10 @@ export default function GlobalSnackbar() {
         horizontal: "center",
         vertical: "bottom"
       }}
-      // open={!!message}
+      open={!!message}
       autoHideDuration={3000}
-      // onClose={() => dispatch(hideSnackbar())}
-      // message={message}
+      onClose={hideNoti}
+      message={message}
       sx={{
         maxWidth: { xs: '65%' }
       }}

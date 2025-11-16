@@ -18,6 +18,7 @@ import { Movie } from "@/app/types/movies";
 import { movieSchema } from "@/utils/schema";
 import { useMutationSaveMovie, useMutationUpdateMovieById } from "@/hooks/movieHook";
 import { log } from "@/utils/logger";
+import { useBoundStore } from "@/lib/useBondStore";
 
 interface MovieFormDialogProps {
   open: boolean;
@@ -42,6 +43,7 @@ export default function MovieFormDialog({
     year: undefined,
   }), []);
 
+  const { showNoti } = useBoundStore();
   const { mutateAsync: saveMovie } = useMutationSaveMovie();
   const { mutateAsync: updateMovie } = useMutationUpdateMovieById();
 
@@ -66,8 +68,10 @@ export default function MovieFormDialog({
       try {
         const data = await saveMovie(newMovie);
         console.log("save movie success from movie dialog", data);
+        showNoti("Successfully save movie.");
       } catch (err) {
         console.log("save movie error from movie dialog", err);
+        showNoti("Failed to save movie.");
       } finally {
         setIsLoading(false);
         reset();
@@ -87,8 +91,10 @@ export default function MovieFormDialog({
       try {
         const data = await updateMovie(updated);
         console.log("update movie success from movie dialog", data);
+        showNoti("Successfully update movie.");
       } catch (err) {
         console.log("update movie error from movie dialog", err);
+        showNoti("Failed to update movie.");
       } finally {
         setIsLoading(false);
         reset();

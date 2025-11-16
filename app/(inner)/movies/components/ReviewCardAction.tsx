@@ -7,6 +7,7 @@ import ReviewFormDialog from "./ReviewFormDialog";
 import { Review } from "@/app/types/reviews";
 import { log } from "@/utils/logger";
 import { useMutationDeleteReview } from "@/hooks/reviewHook";
+import { useBoundStore } from "@/lib/useBondStore";
 
 interface ReviewCardActionProps {
   review: Review;
@@ -18,6 +19,7 @@ export default function ReviewCardAction({
   const [editOpen, setEditOpen] = useState(false);
   const [deleteOpen, setDeleteOpen] = useState(false);
 
+  const { showNoti } = useBoundStore();
   const { mutateAsync: deleteReview, isSuccess } = useMutationDeleteReview();
 
   // edit dialog 
@@ -45,23 +47,13 @@ export default function ReviewCardAction({
     try {
       const data = await deleteReview(review);
       console.log("delete review success from review card action", data);
+      showNoti("Successfully delete review.");
     } catch (err) {
       console.log("delete review error from review card action", err);
+      showNoti("Failed to delete review.");
     } finally {
       handleDeleteClose();
     }
-    // if (!targetReview) return;
-    //
-    // try {
-    //   const result = await deleteReview(targetReview).unwrap();
-    //   log("successfully deleted", result);
-    //   dispatch(showSnackbar("Review deleted successfully!"));
-    // } catch (error) {
-    //   logError("delete error", error);
-    //   dispatch(showSnackbar("Failed to delete review."));
-    // } finally {
-    //   handleDeleteClose();
-    // }
   };
 
   return (

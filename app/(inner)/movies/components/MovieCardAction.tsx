@@ -7,6 +7,7 @@ import MovieCard from "./MovieCard";
 import { Movie } from "@/app/types/movies";
 import { log } from "@/utils/logger";
 import { useMutationDeleteMovieById } from "@/hooks/movieHook";
+import { useBoundStore } from "@/lib/useBondStore";
 
 interface MovieCardActionProps {
   movie: Movie;
@@ -17,6 +18,7 @@ export default function MovieCardAction({ movie }: MovieCardActionProps) {
 
   const [open, setOpen] = useState(false);
 
+  const { showNoti } = useBoundStore();
   const { mutateAsync: deleteMovieById, isSuccess } = useMutationDeleteMovieById();
 
   // For ConfirmationDialog
@@ -39,21 +41,13 @@ export default function MovieCardAction({ movie }: MovieCardActionProps) {
     try {
       const data = await deleteMovieById(movie);
       log("delete movie success from movie card action", data);
+      showNoti("Successfully delete movie.");
     } catch (err) {
       log("delete movie error from movie card action", err);
+      showNoti("Failed to delete movie.");
     } finally {
       handleClose();
     }
-    // try {
-    //   const result = await deleteMovie(id).unwrap();
-    //   log("successfully deleted", result);
-    //   dispatch(showSnackbar("Movie deleted successfully!"));
-    // } catch (error) {
-    //   logError("delete error", error);
-    //   dispatch(showSnackbar("Failed to delete movie."));
-    // } finally {
-    //   handleClose();
-    // }
   };
 
   const handleDeleteDecline = () => {

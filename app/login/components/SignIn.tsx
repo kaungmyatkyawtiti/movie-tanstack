@@ -26,6 +26,7 @@ export default function SignIn() {
   const searchParams = useSearchParams();
 
   const { login } = useBoundStore();
+  const { showNoti } = useBoundStore();
 
   const redirectUrl = searchParams.get("redirectUrl");
 
@@ -62,6 +63,7 @@ export default function SignIn() {
       } else {
         router.push("/");
       }
+      showNoti("Successfully login.");
     } catch (err) {
       console.log("login error from SignIn", err, "err instance of Error", err instanceof Error);
 
@@ -74,41 +76,13 @@ export default function SignIn() {
           message: errMsg,
         });
       });
+      showNoti("Failed to login.");
     } finally {
       reset(
         { username: "", password: "" },
         { keepErrors: true }
       );
     }
-
-    // try {
-    //   const result = await dispatch(login(data)).unwrap();
-    //   log("success", result);
-    //   if (redirectUrl) {
-    //     router.push(redirectUrl);
-    //   } else {
-    //     router.push("/dashboard");
-    //   }
-    //
-    //   dispatch(showSnackbar("Successfully login."));
-    // } catch (err) {
-    //   logError("login failed", err);
-    //
-    //   const errMsg = err as string;
-    //   const fields: (keyof FormData)[] = ["username", "password"];
-    //   fields.forEach(field => {
-    //     setError(field, {
-    //       type: "server",
-    //       message: errMsg,
-    //     });
-    //   });
-    //   dispatch(showSnackbar("Failed to login!"));
-    // } finally {
-    //   reset(
-    //     { username: "", password: "" },
-    //     { keepErrors: true }
-    //   );
-    // }
   };
 
   return (
