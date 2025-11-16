@@ -2,13 +2,15 @@
 
 import { Box, Button } from "@mui/material";
 import { useState } from "react";
-import { redirect } from "next/navigation";
+import { redirect, useRouter } from "next/navigation";
 import ConfirmationDialog from "@/components/ConfirmDialog";
-import IsAuth from "@/components/IsAuth";
 import { log } from "@/utils/logger";
+import { useBoundStore } from "@/lib/useBondStore";
 
 function LogoutPage() {
+  const router = useRouter();
   const [open, setOpen] = useState(false);
+  const { logout } = useBoundStore();
 
   const showConfirmDialog = () => {
     setOpen(true);
@@ -25,12 +27,15 @@ function LogoutPage() {
   }
 
   const handleConfirm = () => {
-    // dispatch(logout());
-    // log("success logout");
-    // dispatch(showSnackbar("Successfully logout."));
-    // handleClose();
-    // redirect("/login");
-    console.log("logou");
+    try {
+      logout();
+      // dispatch(showSnackbar("Successfully logout."));
+      router.push("/login");
+    } catch (err) {
+      log("logout error", err);
+    } finally {
+      handleClose();
+    }
   };
 
   return (

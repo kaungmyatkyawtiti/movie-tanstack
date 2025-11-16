@@ -11,15 +11,13 @@ import {
 import { yupResolver } from "@hookform/resolvers/yup"
 import { useForm } from "react-hook-form";
 import { InferType } from 'yup';
-import { useAppDispatch } from '@/lib/hooks';
-import { login } from '@/lib/features/auth/authSlice';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useEffect } from 'react';
-import { log, logError } from '@/app/utils/logger';
-import { showSnackbar } from '@/lib/features/snackbar/snackbarSlice';
-import useAuth from '@/app/auth/useAuth';
 import Link from 'next/link';
-import { userSchema } from '@/lib/schemas';
+import { log } from '@/utils/logger';
+import { userSchema } from '@/utils/schema';
+import { useBoundStore } from '@/lib/useBondStore';
+import useAuth from '@/hooks/useAuth';
 
 type FormData = InferType<typeof userSchema>;
 
@@ -27,9 +25,10 @@ export default function SignIn() {
   const router = useRouter();
   const searchParams = useSearchParams();
 
+  const { login } = useBoundStore();
+
   const redirectUrl = searchParams.get("redirectUrl");
 
-  const dispatch = useAppDispatch();
   const isAuth = useAuth();
 
   useEffect(() => {
@@ -53,24 +52,21 @@ export default function SignIn() {
     },
   });
 
-  // const onSubmit: SubmitHandler<FormData> = async (data) => {
   const onSubmit = async (data: FormData) => {
     log("Sign in data:", data);
-
     try {
-      const result = await dispatch(login(data)).unwrap();
-      log("success", result);
+      const result = await login(data);
+      log("login success from SignIn", result);
       if (redirectUrl) {
         router.push(redirectUrl);
       } else {
-        router.push("/dashboard");
+        router.push("/");
       }
-
-      dispatch(showSnackbar("Successfully login."));
     } catch (err) {
-      logError("login failed", err);
+      console.log("login error from SignIn", err, "err instance of Error", err instanceof Error);
 
-      const errMsg = err as string;
+      const errMsg = err instanceof Error ? err.message : err as string;
+
       const fields: (keyof FormData)[] = ["username", "password"];
       fields.forEach(field => {
         setError(field, {
@@ -78,13 +74,41 @@ export default function SignIn() {
           message: errMsg,
         });
       });
-      dispatch(showSnackbar("Failed to login!"));
     } finally {
       reset(
         { username: "", password: "" },
         { keepErrors: true }
       );
     }
+
+    // try {
+    //   const result = await dispatch(login(data)).unwrap();
+    //   log("success", result);
+    //   if (redirectUrl) {
+    //     router.push(redirectUrl);
+    //   } else {
+    //     router.push("/dashboard");
+    //   }
+    //
+    //   dispatch(showSnackbar("Successfully login."));
+    // } catch (err) {
+    //   logError("login failed", err);
+    //
+    //   const errMsg = err as string;
+    //   const fields: (keyof FormData)[] = ["username", "password"];
+    //   fields.forEach(field => {
+    //     setError(field, {
+    //       type: "server",
+    //       message: errMsg,
+    //     });
+    //   });
+    //   dispatch(showSnackbar("Failed to login!"));
+    // } finally {
+    //   reset(
+    //     { username: "", password: "" },
+    //     { keepErrors: true }
+    //   );
+    // }
   };
 
   return (

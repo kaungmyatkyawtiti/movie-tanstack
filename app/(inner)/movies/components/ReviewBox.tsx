@@ -2,10 +2,10 @@ import { Box, Typography } from "@mui/material";
 import ReviewEntry from "./ReviewEntry";
 import ReviewCardSkeleton from "./ReviewCardSkeleton";
 import ReviewCardAction from "./ReviewCardAction";
-import { useGetReviewByMovieId } from "@/hooks/reviewHook";
+import { useGetReview } from "@/hooks/reviewHook";
 
 export default function ReviewBox({ id }: { id: string }) {
-  const { data: reviews, isError, isLoading, isSuccess, refetch, isFetching } = useGetReviewByMovieId(id);
+  const { data: reviews, isError, isLoading, isSuccess, refetch, isFetching } = useGetReview(id);
 
   if (isLoading) return <ReviewCardSkeleton />;
 

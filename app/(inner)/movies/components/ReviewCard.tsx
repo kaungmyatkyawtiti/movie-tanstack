@@ -4,7 +4,6 @@ import {
   Edit as EditIcon
 } from "@mui/icons-material";
 import { Review } from "@/app/types/reviews";
-import { log } from "@/app/utils/logger";
 
 export interface ReviewCardProps {
   review: Review;

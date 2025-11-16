@@ -1,10 +1,10 @@
 "use client";
 
 import { usePathname, useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import { Box, Typography } from '@mui/material';
-import useAuth from "@/app/auth/useAuth";
 import { log } from "@/utils/logger";
+import useAuth from "@/hooks/useAuth";
 
 function AuthCheckLoading() {
   return (
@@ -34,12 +34,10 @@ export default function IsAuth<T>(
     log('Path name ', pathname);
 
     useEffect(() => {
-      log("Effect ran, token is :", isAuth, "pathname:", pathname);
+      log("Effect ran, isAuth:", isAuth, "pathname:", pathname);
 
-      if (!isAuth) {
-        router.replace(`/login?redirectUrl=${pathname}`);
-        return;
-      }
+      const loginUrl = `/login?redirectUrl=${pathname}`;
+      if (!isAuth) return router.replace(loginUrl);
     }, []);
 
     if (!isAuth) {

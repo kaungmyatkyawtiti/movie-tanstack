@@ -26,5 +26,5 @@ const HomeLayout = ({ children }: HomeLayoutProps) => {
   )
 }
 
-export default HomeLayout;
-// export default IsAuth(HomeLayout);
+// export default HomeLayout;
+export default IsAuth(HomeLayout);

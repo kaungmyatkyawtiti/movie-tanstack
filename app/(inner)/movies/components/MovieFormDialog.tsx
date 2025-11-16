@@ -12,10 +12,12 @@ import {
 
 import { zodResolver } from '@hookform/resolvers/zod';
 import { SubmitHandler, useForm } from "react-hook-form";
-import { useEffect, useMemo } from "react";
+import { useEffect, useMemo, useState } from "react";
 import z from 'zod';
 import { Movie } from "@/app/types/movies";
 import { movieSchema } from "@/utils/schema";
+import { useMutationSaveMovie, useMutationUpdateMovieById } from "@/hooks/movieHook";
+import { log } from "@/utils/logger";
 
 interface MovieFormDialogProps {
   open: boolean;
@@ -30,6 +32,7 @@ export default function MovieFormDialog({
   onClose,
   movieToEdit,
 }: MovieFormDialogProps) {
+  const [isLoading, setIsLoading] = useState(false);
   const defaultValues = useMemo(() => ({
     title: "",
     director: {
@@ -38,6 +41,9 @@ export default function MovieFormDialog({
     },
     year: undefined,
   }), []);
+
+  const { mutateAsync: saveMovie } = useMutationSaveMovie();
+  const { mutateAsync: updateMovie } = useMutationUpdateMovieById();
 
   const {
     register,
@@ -53,42 +59,42 @@ export default function MovieFormDialog({
     reset(movieToEdit ?? defaultValues);
   }, [movieToEdit, defaultValues, reset]);
 
-  const isSubmitting = true;
-
   const onSubmit: SubmitHandler<MovieFormData> = async (data) => {
-    console.log("submit")
-    // try {
-    //   // log(data);
-    //   if (!movieToEdit) {
-    //     const newMovie = data;
-    //     const response = await saveMovie(newMovie).unwrap();
-    //
-    //     log("new movie successfully saved", response);
-    //     dispatch(showSnackbar("New movie saved successfully!"));
-    //   } else {
-    //     const updated: Movie = {
-    //       _id: movieToEdit._id,
-    //       title: data.title,
-    //       year: data.year,
-    //       director: {
-    //         _id: movieToEdit.director._id,
-    //         name: data.director.name,
-    //         phoneNo: data.director.phoneNo,
-    //       },
-    //     };
-    //
-    //     const response = await updateMovie(updated).unwrap();
-    //
-    //     log("successfully updated", response);
-    //     dispatch(showSnackbar("Movie updated successfully!"));
-    //   }
-    // } catch (err) {
-    //   logError("fail to save/update movie", err);
-    //   dispatch(showSnackbar("Failed to save/update movie"));
-    // } finally {
-    //   reset();
-    //   onClose();
-    // }
+    setIsLoading(true);
+    if (!movieToEdit) {
+      const newMovie = data;
+      try {
+        const data = await saveMovie(newMovie);
+        console.log("save movie success from movie dialog", data);
+      } catch (err) {
+        console.log("save movie error from movie dialog", err);
+      } finally {
+        setIsLoading(false);
+        reset();
+        onClose();
+      }
+    } else {
+      const updated: Movie = {
+        _id: movieToEdit._id,
+        title: data.title,
+        year: data.year,
+        director: {
+          _id: movieToEdit.director._id,
+          name: data.director.name,
+          phoneNo: data.director.phoneNo,
+        },
+      };
+      try {
+        const data = await updateMovie(updated);
+        console.log("update movie success from movie dialog", data);
+      } catch (err) {
+        console.log("update movie error from movie dialog", err);
+      } finally {
+        setIsLoading(false);
+        reset();
+        onClose();
+      }
+    }
   };
 
   return (
@@ -143,7 +149,7 @@ export default function MovieFormDialog({
                 {...register("title")}
                 helperText={errors.title?.message}
                 error={!!errors.title}
-                disabled={isSubmitting}
+                disabled={isLoading}
               />
             </Grid>
             <Grid size={12}>
@@ -156,7 +162,7 @@ export default function MovieFormDialog({
                 {...register("director.name")}
                 helperText={errors.director?.name?.message}
                 error={!!errors.director?.name}
-                disabled={isSubmitting}
+                disabled={isLoading}
               />
             </Grid>
             <Grid size={12}>
@@ -169,7 +175,7 @@ export default function MovieFormDialog({
                 {...register("director.phoneNo")}
                 helperText={errors.director?.phoneNo?.message}
                 error={!!errors.director?.phoneNo}
-                disabled={isSubmitting}
+                disabled={isLoading}
               />
             </Grid>
 
@@ -183,7 +189,7 @@ export default function MovieFormDialog({
                 {...register("year")}
                 helperText={errors.year?.message}
                 error={!!errors.year}
-                disabled={isSubmitting}
+                disabled={isLoading}
               />
             </Grid>
           </Grid>
@@ -198,7 +204,7 @@ export default function MovieFormDialog({
             </Button>
             <Button
               type="submit"
-              disabled={isSubmitting}
+              disabled={isLoading}
               sx={{
                 display: "flex",
                 alignItems: "center",
@@ -206,7 +212,7 @@ export default function MovieFormDialog({
               }}
             >
               {
-                isSubmitting
+                isLoading
                   ? (
                     <>
                       <CircularProgress size={20} />

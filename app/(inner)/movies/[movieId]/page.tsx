@@ -101,7 +101,7 @@
 
 'use client'
 
-import { useGetMovieById, useMovieById } from '@/hooks/movieHook';
+import { useGetMovieById } from '@/hooks/movieHook';
 import { use } from 'react'
 import MovieCard from "../components/MovieCard";
 import { Box, Button, IconButton, Typography } from "@mui/material";

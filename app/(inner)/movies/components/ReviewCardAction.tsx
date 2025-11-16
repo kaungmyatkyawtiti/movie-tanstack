@@ -6,6 +6,7 @@ import ReviewCard from "./ReviewCard";
 import ReviewFormDialog from "./ReviewFormDialog";
 import { Review } from "@/app/types/reviews";
 import { log } from "@/utils/logger";
+import { useMutationDeleteReview } from "@/hooks/reviewHook";
 
 interface ReviewCardActionProps {
   review: Review;
@@ -14,10 +15,10 @@ interface ReviewCardActionProps {
 export default function ReviewCardAction({
   review,
 }: ReviewCardActionProps) {
-  const [targetReview, setTargetReview] = useState<Review | null>(null);
-
   const [editOpen, setEditOpen] = useState(false);
   const [deleteOpen, setDeleteOpen] = useState(false);
+
+  const { mutateAsync: deleteReview, isSuccess } = useMutationDeleteReview();
 
   // edit dialog 
   const handleEdit = () => {
@@ -30,9 +31,8 @@ export default function ReviewCardAction({
   };
 
   // delete dialog 
-  const handleDelete = (review: Review) => {
+  const handleDelete = () => {
     log("delete");
-    setTargetReview(review);
     setDeleteOpen(true);
   };
 
@@ -41,6 +41,15 @@ export default function ReviewCardAction({
   };
 
   const handleDeleteConfirm = async () => {
+    console.log("confirm");
+    try {
+      const data = await deleteReview(review);
+      console.log("delete review success from review card action", data);
+    } catch (err) {
+      console.log("delete review error from review card action", err);
+    } finally {
+      handleDeleteClose();
+    }
     // if (!targetReview) return;
     //
     // try {
@@ -53,7 +62,6 @@ export default function ReviewCardAction({
     // } finally {
     //   handleDeleteClose();
     // }
-    console.log("confirm");
   };
 
   return (

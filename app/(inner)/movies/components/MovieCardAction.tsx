@@ -6,24 +6,44 @@ import ConfirmationDialog from "../../../../components/ConfirmationDialog";
 import MovieCard from "./MovieCard";
 import { Movie } from "@/app/types/movies";
 import { log } from "@/utils/logger";
+import { useMutationDeleteMovieById } from "@/hooks/movieHook";
 
 interface MovieCardActionProps {
   movie: Movie;
 }
 
 export default function MovieCardAction({ movie }: MovieCardActionProps) {
-  const [targetId, setTargetId] = useState<string | null>(null);
-
   const router = useRouter();
 
   const [open, setOpen] = useState(false);
+
+  const { mutateAsync: deleteMovieById, isSuccess } = useMutationDeleteMovieById();
 
   // For ConfirmationDialog
   const handleClose = () => {
     setOpen(false);
   };
 
-  const handleDeleteConfirm = async (id: string) => {
+  // For MovieCard
+  const handleDelete = () => {
+    setOpen(true);
+  };
+
+  const handleDetailClick = () => {
+    log("click");
+    router.push(`/movies/${movie._id}`);
+  }
+
+  const handleDeleteConfirm = async () => {
+    console.log("confirm");
+    try {
+      const data = await deleteMovieById(movie);
+      log("delete movie success from movie card action", data);
+    } catch (err) {
+      log("delete movie error from movie card action", err);
+    } finally {
+      handleClose();
+    }
     // try {
     //   const result = await deleteMovie(id).unwrap();
     //   log("successfully deleted", result);
@@ -34,23 +54,11 @@ export default function MovieCardAction({ movie }: MovieCardActionProps) {
     // } finally {
     //   handleClose();
     // }
-    console.log("confirm");
   };
 
   const handleDeleteDecline = () => {
     log("decline");
     handleClose();
-  }
-
-  // For MovieCard
-  const handleDelete = (movie: Movie) => {
-    setTargetId(movie._id);
-    setOpen(true);
-  };
-
-  const handleDetailClick = (movie: Movie) => {
-    log("click");
-    router.push(`/movies/${movie._id}`);
   }
 
   return (
@@ -60,14 +68,13 @@ export default function MovieCardAction({ movie }: MovieCardActionProps) {
         keepMounted={true}
         title={movie.title}
         message={"are you sure to delete?"}
-        onConfirm={() => targetId && handleDeleteConfirm(targetId)}
+        onConfirm={handleDeleteConfirm}
         onCancel={handleDeleteDecline}
       />
       <MovieCard
         movie={movie}
-        // onShowConfirmDialog={handleShowConfirmDialog}
-        onDetailClick={() => handleDetailClick(movie)}
-        onDelete={() => handleDelete(movie)}
+        onDetailClick={handleDetailClick}
+        onDelete={handleDelete}
       />
     </>
   )

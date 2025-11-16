@@ -1,5 +1,5 @@
-import { Movie } from "@/types/movies";
-import { axiosInstance } from "@/utils/axiosInstance";
+import { Movie, NewMovie } from "@/types/movies";
+import axiosInstance from "@/utils/axiosInstance";
 import { AxiosResponse } from "axios";
 
 export async function getAllMoviesApi(): Promise<Movie[]> {
@@ -12,17 +12,17 @@ export async function getAllMoviesApi(): Promise<Movie[]> {
 //   return data.data;
 // }
 
-export async function apiSaveMovie(movie: NewMovie): Promise<Movie> {
+export async function saveMovieApi(movie: NewMovie): Promise<Movie> {
   const { data } = await axiosInstance.post<AxiosResponse<Movie>>(`api/movies`, movie);
   return data.data;
 }
 
-export async function apiUpdateMovieById(movie: Movie): Promise<Movie> {
+export async function updateMovieByIdApi(movie: Movie): Promise<Movie> {
   const { data } = await axiosInstance.put<AxiosResponse<Movie>>(`api/movies/${movie._id}`, movie);
   return data.data;
 }
 
-export async function apiDeleteMovieById(id: string): Promise<Movie> {
+export async function deleteMovieByIdApi(id: string): Promise<Movie> {
   const { data } = await axiosInstance.delete<AxiosResponse<Movie>>(`api/movies/${id}`);
   return data.data;
 }

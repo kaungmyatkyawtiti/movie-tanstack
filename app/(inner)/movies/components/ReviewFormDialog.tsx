@@ -18,6 +18,7 @@ import { Review } from "@/app/types/reviews";
 import z from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { reviewSchema } from "@/utils/schema";
+import { useMutationSaveReview, useMutationUpdateReview } from "@/hooks/reviewHook";
 
 interface ReviewFormDialogProps {
   open: boolean;
@@ -34,8 +35,11 @@ export default function ReviewFormDialog({
   movieId,
   reviewToEdit,
 }: ReviewFormDialogProps) {
-  // Rating
+  const [isLoading, setIsLoading] = useState(false);
   const [rating, setRating] = useState<number>(reviewToEdit?.rating ?? 0);
+
+  const { mutateAsync: saveReview } = useMutationSaveReview();
+  const { mutateAsync: updateReview } = useMutationUpdateReview();
 
   // hookform
   const {
@@ -58,39 +62,75 @@ export default function ReviewFormDialog({
   }, [reviewToEdit]);
 
   const onSubmit: SubmitHandler<ReviewFormData> = async (data) => {
-    console.log("submit")
-    // try {
-    //   if (reviewToEdit) {
-    //     const updated = {
-    //       _id: reviewToEdit._id,
-    //       movie: reviewToEdit.movie,
-    //       review: data.review,
-    //       rating,
-    //     };
-    //     const response = await updateReview(updated).unwrap();
-    //     log("successfully updated", response);
-    //     dispatch(showSnackbar("Review updated successfully!"));
-    //   } else {
-    //     const newOne = {
-    //       movie: movieId,
-    //       review: data.review,
-    //       rating,
-    //     };
-    //     const response = await saveReview(newOne).unwrap();
-    //     log("new review successfully saved", response);
-    //     dispatch(showSnackbar("New review saved successfully!"));
-    //   }
-    // } catch (err) {
-    //   logError("fail to save/update review", err);
-    //   dispatch(showSnackbar("Failed to save/update review"));
-    // } finally {
-    //   reset();
-    //   onClose();
-    // }
+    setIsLoading(true);
+
+    if (reviewToEdit) {
+      const updated = {
+        _id: reviewToEdit._id,
+        movie: reviewToEdit.movie,
+        review: data.review,
+        rating,
+      };
+      try {
+        const data = await updateReview(updated);
+        console.log("update review success from review dialog", data);
+      } catch (err) {
+        console.log("update review error from review dialog", err);
+      } finally {
+        setIsLoading(false);
+        reset();
+        onClose();
+      }
+    } else {
+      const newOne = {
+        movie: movieId,
+        review: data.review,
+        rating,
+      };
+      try {
+        const data = await saveReview(newOne);
+        console.log("save review success from review dialog", data);
+      } catch (err) {
+        console.log("save review error from review dialog", err);
+      } finally {
+        setIsLoading(false);
+        reset();
+        onClose();
+      }
+    }
   };
 
-  // const isSubmitting = saveReviewResult.isLoading || updateReviewResult.isLoading;
-  const isSubmitting = true;
+  // const onSubmit: SubmitHandler<ReviewFormData> = async (data) => {
+  // console.log("submit")
+  // try {
+  //   if (reviewToEdit) {
+  //     const updated = {
+  //       _id: reviewToEdit._id,
+  //       movie: reviewToEdit.movie,
+  //       review: data.review,
+  //       rating,
+  //     };
+  //     const response = await updateReview(updated).unwrap();
+  //     log("successfully updated", response);
+  //     dispatch(showSnackbar("Review updated successfully!"));
+  //   } else {
+  //     const newOne = {
+  //       movie: movieId,
+  //       review: data.review,
+  //       rating,
+  //     };
+  //     const response = await saveReview(newOne).unwrap();
+  //     log("new review successfully saved", response);
+  //     dispatch(showSnackbar("New review saved successfully!"));
+  //   }
+  // } catch (err) {
+  //   logError("fail to save/update review", err);
+  //   dispatch(showSnackbar("Failed to save/update review"));
+  // } finally {
+  //   reset();
+  //   onClose();
+  // }
+  // };
 
   return (
     <Dialog
@@ -139,7 +179,7 @@ export default function ReviewFormDialog({
                   setRating(newValue ?? 0);
                 }}
                 emptyIcon={<StarIcon style={{ opacity: 0.55 }} fontSize="inherit" />}
-                disabled={isSubmitting}
+                disabled={isLoading}
               />
             </Grid>
 
@@ -152,7 +192,7 @@ export default function ReviewFormDialog({
                 {...register("review")}
                 helperText={errors.review?.message}
                 error={!!errors.review}
-                disabled={isSubmitting}
+                disabled={isLoading}
               />
             </Grid>
           </Grid>
@@ -168,16 +208,15 @@ export default function ReviewFormDialog({
             </Button>
             <Button
               type="submit"
-              disabled={isSubmitting}
+              disabled={isLoading}
               sx={{
                 display: "flex",
                 alignItems: "center",
                 gap: 1
               }}
-
             >
               {
-                isSubmitting
+                isLoading
                   ? (
                     <>
                       <CircularProgress size={20} />

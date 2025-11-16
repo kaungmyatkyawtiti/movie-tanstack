@@ -1,7 +1,7 @@
 import { useMutation, useQuery } from "@tanstack/react-query"
-import { apiDeleteMovieById, apiSaveMovie, apiUpdateMovieById, getAllMoviesApi } from "./api/movieApi"
+import { deleteMovieByIdApi, getAllMoviesApi, saveMovieApi, updateMovieByIdApi } from "./api/movieApi"
 import { log, logError } from "@/utils/logger";
-import { Movie } from "@/types/movies";
+import { Movie, NewMovie } from "@/types/movies";
 import { queryClient } from "@/components/Providers";
 
 export const useGetAllMovies = () => {
@@ -12,13 +12,6 @@ export const useGetAllMovies = () => {
   })
 }
 
-// export const useMovieById = (movieId: string) => {
-//   return useQuery({
-//     queryKey: ['movies', movieId],
-//     queryFn: () => getMovieById(movieId),
-//   });
-// };
-
 export const useGetMovieById = (movieId: string) => {
   console.log("movieId from useGetMovieById", movieId);
   const data = queryClient.getQueryData<Movie[]>(['movies']);
@@ -26,44 +19,52 @@ export const useGetMovieById = (movieId: string) => {
   return data?.find(movie => movie._id === movieId);
 };
 
-export const useMovieById = (movieId: string) => {
-  const data = queryClient.getQueryData<Movie[]>(["movies"])
-  return data?.find(movie => movie._id === movieId)
-};
-
 export const useMutationSaveMovie = () => {
   return useMutation({
-    mutationFn: (movie: NewMovie) => apiSaveMovie(movie),
+    mutationFn: (movie: NewMovie) => saveMovieApi(movie),
 
-    onSuccess: async (savedMovie: NewMovie) => {
-      log("I'm onSuccess!", savedMovie);
+    onSuccess: (newOne: NewMovie) => {
+      log("save movie onSuccess", newOne);
 
-      queryClient.setQueriesData(
-        { queryKey: ["movies"] },
-        (oldState: Movie[]) => [...oldState, savedMovie]
+      queryClient.setQueryData(
+        ["movies"],
+        (oldState: Movie[]) => [...oldState, newOne]
       )
     },
-    onSettled: async () => {
-      log("I'm onSettled!")
+    onSettled: (newOne, error, variables, onMutateResult) => {
+      log("save Movie onSettled", newOne);
     },
   });
 }
 
 export const useMutationUpdateMovieById = () => {
   return useMutation({
-    mutationFn: (movie: Movie) => apiUpdateMovieById(movie),
+    mutationFn: (movie: Movie) => updateMovieByIdApi(movie),
 
-    onSuccess: async (updatedMovie: Movie) => {
-      log("I'm onSuccess!", updatedMovie);
+    onMutate: async (updated: Movie) => {
+      await queryClient.cancelQueries({ queryKey: ['movies'] });
 
-      queryClient.setQueriesData(
-        { queryKey: ["movies"] },
-        (oldState: Movie[]) => oldState.map(m => m._id == updatedMovie._id ? updatedMovie : m)
+      const previous = queryClient.getQueryData(['movies']);
+
+      queryClient.setQueryData(
+        ["movies"],
+        (oldState: Movie[]) => oldState.map(m => m._id === updated._id ? updated : m)
+      )
+
+      return { previous };
+    },
+    onSuccess: (movie, variables, onMutateResult) => {
+      console.log("movie update onSuccess", movie);
+    },
+    onError: (err, movie, onMutateResult) => {
+      console.log("movie update onError", err, movie);
+      queryClient.setQueryData(
+        ['movies'],
+        onMutateResult?.previous
       )
     },
-
-    onSettled: async () => {
-      log("I'm onSettled!")
+    onSettled: (updated, error, variables, onMutateResult) => {
+      console.log("movie update onSettled", updated)
     },
   });
 }
@@ -92,32 +93,35 @@ export const useMutationUpdateMovieById = () => {
 // Optimistic Update
 export const useMutationDeleteMovieById = () => {
   return useMutation({
-    mutationFn: (movie: Movie) => apiDeleteMovieById(movie._id),
+    mutationFn: (movie) => deleteMovieByIdApi(movie._id),
 
-    onMutate: (movie: Movie) => {
-      log("onMutate", movie._id);
+    onMutate: async (movie: Movie) => {
+      await queryClient.cancelQueries({ queryKey: ['movies'] });
 
-      const oldState = queryClient.getQueryData(["movies"]);
+      const previous = queryClient.getQueryData(['movies']);
 
-      queryClient.setQueriesData(
-        { queryKey: ["movies"] },
+      queryClient.setQueryData(
+        ["movies"],
         (oldState: Movie[]) => oldState.filter(m => m._id != movie._id)
       )
 
-      return { oldState };
+      return { previous };
     },
-
-    onSuccess: async (deletedMovie: Movie) => {
-      log("I'm onSuccess!", deletedMovie);
+    // promise then(success case)
+    onSuccess: (movie, variables, onMutateResult) => {
+      console.log("movie delete onSuccess", movie, variables, onMutateResult);
     },
-
-    onSettled: async () => {
-      log("I'm onSettled!")
+    // promise catch(error case)
+    onError: (err, movie, onMutateResult) => {
+      console.log("movie delete onError", err);
+      queryClient.setQueryData(
+        ['movies'],
+        onMutateResult?.previous
+      )
     },
-
-    onError: (error, movie, context) => {
-      logError(error);
-      queryClient.setQueryData(["movies"], context?.oldState);
-    }
+    // promise finally(do whatever case)
+    onSettled: (movie, error, variables, onMutateResult) => {
+      console.log("movie delete onSettled", movie, variables, onMutateResult);
+    },
   });
 }

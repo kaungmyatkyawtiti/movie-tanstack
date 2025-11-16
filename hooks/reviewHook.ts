@@ -1,63 +1,96 @@
 import { useMutation, useQuery } from "@tanstack/react-query";
-import { apiDeleteReviewById, apiSaveReview, getReviewByMovieIdApi } from "./api/reviewApi";
+import { deleteReviewApi, getReviewApi, saveReviewApi, updateReviewApi } from "./api/reviewApi";
 import { log, logError } from "@/utils/logger";
-import { Review } from "@/types/reviews";
+import { NewReview, Review } from "@/types/reviews";
 import { queryClient } from "@/components/Providers";
 
-export const useGetReviewByMovieId = (movieId: string) => {
+export const useGetReview = (movieId: string) => {
   return useQuery({
     queryKey: ['reviews', movieId],
-    queryFn: () => getReviewByMovieIdApi(movieId),
+    queryFn: () => getReviewApi(movieId),
     refetchOnWindowFocus: false,
   });
 };
 
 export const useMutationSaveReview = () => {
   return useMutation({
-    mutationFn: (review: NewReview) => apiSaveReview(review),
+    mutationFn: (review: NewReview) => saveReviewApi(review),
 
-    onSuccess: async (savedReview: NewReview) => {
-      log("I'm onSuccess!", savedReview);
+    onSuccess: (newOne: NewReview) => {
+      log("save review onSuccess!", newOne);
 
-      queryClient.setQueriesData(
-        { queryKey: ["reviews", savedReview.movie] },
-        (oldState: Review[]) => [savedReview, ...oldState]
+      queryClient.setQueryData(
+        ["reviews", newOne.movie],
+        (oldState: Review[]) => [...oldState, newOne]
       )
     },
-    onSettled: async () => {
-      log("I'm onSettled!")
+    onSettled: (newOne, error, variables, onMutateResult) => {
+      log("save review onSettled", newOne);
     },
   });
 }
 
-export const useMutationDeleteReviewById = () => {
+export const useMutationUpdateReview = () => {
   return useMutation({
-    mutationFn: (review: Review) => apiDeleteReviewById(review._id),
+    mutationFn: (review: Review) => updateReviewApi(review),
 
-    onMutate: (review: Review) => {
-      log("onMutate", review._id);
+    onMutate: async (updated: Review) => {
+      await queryClient.cancelQueries({ queryKey: ['reviews', updated.movie] });
 
-      const oldState = queryClient.getQueryData(["reviews", review.movie]);
+      const previous = queryClient.getQueryData(['reviews', updated.movie]);
+
+      queryClient.setQueryData(
+        ["reviews", updated.movie],
+        (oldState: Review[]) => oldState.map(rw => rw._id === updated._id ? updated : rw)
+      )
+
+      return { previous };
+    },
+
+    onSuccess: (updated) => {
+      log("save review onSuccess!", updated);
+    },
+    onError: (err, updated, onMutateResult) => {
+      console.log("movie update onError", err, updated);
+      queryClient.setQueryData(
+        ['reviews', updated.movie],
+        onMutateResult?.previous
+      )
+    },
+    onSettled: (updated, error, variables, onMutateResult) => {
+      log("save review onSettled", updated);
+    },
+  });
+}
+
+export const useMutationDeleteReview = () => {
+  return useMutation({
+    mutationFn: (review: Review) => deleteReviewApi(review._id),
+
+    onMutate: async (review: Review) => {
+      await queryClient.cancelQueries({ queryKey: ['reviews', review.movie] });
+
+      const previous = queryClient.getQueryData(["reviews", review.movie]);
 
       queryClient.setQueriesData(
         { queryKey: ["reviews", review.movie] },
-        (oldState: Review[]) => oldState.filter(r => r._id != review._id)
+        (oldState: Review[]) => oldState.filter(rw => rw._id != review._id)
       )
 
-      return { oldState };
+      return { previous };
     },
-
-    onSuccess: async (deletedReview: Review) => {
-      log("I'm onSuccess!", deletedReview);
+    onSuccess: (deleted) => {
+      log("delete review onSuccess", deleted);
     },
-
-    onSettled: async () => {
-      log("I'm onSettled!")
+    onError: (error, deleted, onMutateResult) => {
+      log(error);
+      queryClient.setQueryData(
+        ["reviews", deleted.movie],
+        onMutateResult?.previous
+      );
     },
-
-    onError: (error, review, context) => {
-      logError(error);
-      queryClient.setQueryData(["reviews"], context?.oldState);
-    }
+    onSettled: (deleted) => {
+      log("delete review onSettled", deleted)
+    },
   });
 }
