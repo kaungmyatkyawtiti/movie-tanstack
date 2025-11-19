@@ -6,7 +6,7 @@ import {
 import type { ReactNode } from "react";
 import { ReactQueryDevtools } from '@tanstack/react-query-devtools'
 import { QueryClient } from "@tanstack/react-query";
-import { AppRouterCacheProvider } from '@mui/material-nextjs/v15-appRouter';
+import { AppRouterCacheProvider } from '@mui/material-nextjs/v16-appRouter';
 import { ThemeProvider } from '@mui/material/styles';
 import theme from "@/utils/theme";
 

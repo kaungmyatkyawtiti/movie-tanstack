@@ -10,7 +10,7 @@ import { useBoundStore } from "@/lib/useBondStore";
 function LogoutPage() {
   const router = useRouter();
   const [open, setOpen] = useState(false);
-  const { logout } = useBoundStore();
+  const { logout, showNoti } = useBoundStore();
 
   const showConfirmDialog = () => {
     setOpen(true);
@@ -29,10 +29,11 @@ function LogoutPage() {
   const handleConfirm = () => {
     try {
       logout();
-      // dispatch(showSnackbar("Successfully logout."));
+      showNoti("Successfully logout.");
       router.push("/login");
     } catch (err) {
       log("logout error", err);
+      showNoti("Failed to logout.");
     } finally {
       handleClose();
     }
