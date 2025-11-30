@@ -1,6 +1,6 @@
 import { BoundStore } from "@/lib/useBondStore";
 import { LoginResponse, LoginUser } from "@/types/auth";
-import { BASE_URL } from "@/utils/config";
+import { apiUrl } from "@/utils/config";
 import { StateCreator } from "zustand";
 
 export interface AuthState {
@@ -27,7 +27,7 @@ export const createAuthSlice: StateCreator<
   ...initState,
   login: async (user: LoginUser) => {
     try {
-      const response = await fetch(BASE_URL + `/api/users/login`, {
+      const response = await fetch(apiUrl + `/api/users/login`, {
         headers: {
           "Content-Type": "application/json",
         },

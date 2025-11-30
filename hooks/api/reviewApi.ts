@@ -1,5 +1,5 @@
 import { NewReview, Review } from "@/types/reviews";
-import axiosInstance from "@/utils/axiosInstance";
+import axiosInstance from "@/lib/axiosInstance";
 import { AxiosResponse } from "axios";
 
 export async function getReviewApi(movieId: string): Promise<Review[]> {

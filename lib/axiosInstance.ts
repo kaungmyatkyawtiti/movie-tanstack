@@ -1,12 +1,12 @@
 import axios from "axios";
-import { BASE_URL } from "./config";
 import { useBoundStore } from "@/lib/useBondStore";
-import { log } from "./logger";
+import { log } from "@/utils/logger";
+import { apiUrl } from "@/utils/config";
 
 console.log("axiosInstance.ts loaded!");
 
 const axiosInstance = axios.create({
-  baseURL: BASE_URL,
+  baseURL: apiUrl,
   timeout: 10000
 });
 

@@ -1,5 +1,5 @@
 import { Movie, NewMovie } from "@/types/movies";
-import axiosInstance from "@/utils/axiosInstance";
+import axiosInstance from "@/lib/axiosInstance";
 import { AxiosResponse } from "axios";
 
 export async function getAllMoviesApi(): Promise<Movie[]> {

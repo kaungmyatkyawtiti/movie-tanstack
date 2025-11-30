@@ -64,10 +64,9 @@ export default function MovieFormDialog({
   const onSubmit: SubmitHandler<MovieFormData> = async (data) => {
     setIsLoading(true);
     if (!movieToEdit) {
-      const newMovie = data;
       try {
-        const data = await saveMovie(newMovie);
-        console.log("save movie success from movie dialog", data);
+        const result = await saveMovie(data);
+        console.log("save movie success from movie dialog", result);
         showNoti("Successfully save movie.");
       } catch (err) {
         console.log("save movie error from movie dialog", err);
@@ -89,8 +88,8 @@ export default function MovieFormDialog({
         },
       };
       try {
-        const data = await updateMovie(updated);
-        console.log("update movie success from movie dialog", data);
+        const result = await updateMovie(updated);
+        console.log("update movie success from movie dialog", result);
         showNoti("Successfully update movie.");
       } catch (err) {
         console.log("update movie error from movie dialog", err);

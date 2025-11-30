@@ -74,8 +74,8 @@ export default function ReviewFormDialog({
         rating,
       };
       try {
-        const data = await updateReview(updated);
-        console.log("update review success from review dialog", data);
+        const result = await updateReview(updated);
+        console.log("update review success from review dialog", result);
         showNoti("Successfully update review.");
       } catch (err) {
         console.log("update review error from review dialog", err);
@@ -92,8 +92,8 @@ export default function ReviewFormDialog({
         rating,
       };
       try {
-        const data = await saveReview(newOne);
-        console.log("save review success from review dialog", data);
+        const result = await saveReview(newOne);
+        console.log("save review success from review dialog", result);
         showNoti("Successfully save review.");
       } catch (err) {
         console.log("save review error from review dialog", err);
